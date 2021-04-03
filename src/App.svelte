@@ -1,10 +1,19 @@
 <script>
-	export let name;
+	import Playlist from './view/Playlist.svelte';
+	// export let name;
+	// import {setContext} from 'svelte';
+	// import key from './key';
+	// setContext('YOUTUBE_API_KEY', key.YOUTUBE_API_KEY);
 </script>
 
-<main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
+<main class="container">
+	<h1 class="block">Mini Jukebox</h1>
+	<p class="block"><a href="https://svelte.dev">Svelte</a> 공부하기 위해서 만들어 보는 앱</p>
+	<div class="columns">
+		<div class="column">
+			<Playlist></Playlist>
+		</div>
+	</div>
 </main>
 
 <style>
