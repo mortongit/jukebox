@@ -1,105 +1,54 @@
-*Looking for a shareable component template? Go here --> [sveltejs/component-template](https://github.com/sveltejs/component-template)*
+# MINI JUKEBOX APP
 
----
+간단한 쥬크박스 앱을 위한 프로젝트
 
-# svelte app
+## Features
+- 유튜브 동영상 및 재생목록 주소를 이용한 음원 추가
+- 유튜브 동영상 및 재생목록 검색을 이용한 음원 추가
+- 음원 삭제
+- 음원 재생 순서 변경 (드래그앤드롭)
+- 음원 재생 및 일시 정지
+- 음원 목록 순차 재생, 목록 반복 재생, 선택 음원 재생
+- 탐색바(seekbar)를 이용한 재생 위치 변경
 
-This is a project template for [Svelte](https://svelte.dev) apps. It lives at https://github.com/sveltejs/template.
-
-To create a new project based on this template using [degit](https://github.com/Rich-Harris/degit):
-
-```bash
-npx degit sveltejs/template svelte-app
-cd svelte-app
-```
-
-*Note that you will need to have [Node.js](https://nodejs.org) installed.*
-
+## Requirements
+- nodejs 14.16.0
+- rollup 2.3.4
+- svelte 3.0.0
+- bulma@0.9.2
+- bulma-switch@2.0.0
+- font-awesome/5.15.3
+- youtube player_api
+- youtube data_api
+- moment@2.29.1
+- sortablejs@1.13.0
 
 ## Get started
 
-Install the dependencies...
-
+* 프로젝트 다운로드(클론) 후 의존성 설치 및 실행
 ```bash
-cd svelte-app
-npm install
+$ npx degit mortongit/jukebox myapp
+$ cd myapp
+$ npm install
 ```
 
-...then start [Rollup](https://rollupjs.org):
-
-```bash
-npm run dev
+* 프로젝트 루트에 key.js 파일을 생성하고 유튜브 API 키를 설정
+```javascript
+export default {
+    YOUTUBE_API_KEY: 'YOUTUBE API KEY'
+}
 ```
 
-Navigate to [localhost:5000](http://localhost:5000). You should see your app running. Edit a component file in `src`, save it, and reload the page to see your changes.
-
-By default, the server will only respond to requests from localhost. To allow connections from other computers, edit the `sirv` commands in package.json to include the option `--host 0.0.0.0`.
-
-If you're using [Visual Studio Code](https://code.visualstudio.com/) we recommend installing the official extension [Svelte for VS Code](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode). If you are using other editors you may need to install a plugin in order to get syntax highlighting and intellisense.
+* 프로젝트 실행 후 웹 브라우저에서 [localhost:5000](http://localhost:5000) 접속
+```bash
+$ npm run dev
+```
 
 ## Building and running in production mode
 
-To create an optimised version of the app:
 
 ```bash
 npm run build
 ```
 
-You can run the newly built app with `npm run start`. This uses [sirv](https://github.com/lukeed/sirv), which is included in your package.json's `dependencies` so that the app will work when you deploy to platforms like [Heroku](https://heroku.com).
 
-
-## Single-page app mode
-
-By default, sirv will only respond to requests that match files in `public`. This is to maximise compatibility with static fileservers, allowing you to deploy your app anywhere.
-
-If you're building a single-page app (SPA) with multiple routes, sirv needs to be able to respond to requests for *any* path. You can make it so by editing the `"start"` command in package.json:
-
-```js
-"start": "sirv public --single"
-```
-
-## Using TypeScript
-
-This template comes with a script to set up a TypeScript development environment, you can run it immediately after cloning the template with:
-
-```bash
-node scripts/setupTypeScript.js
-```
-
-Or remove the script via:
-
-```bash
-rm scripts/setupTypeScript.js
-```
-
-## Deploying to the web
-
-### With [Vercel](https://vercel.com)
-
-Install `vercel` if you haven't already:
-
-```bash
-npm install -g vercel
-```
-
-Then, from within your project folder:
-
-```bash
-cd public
-vercel deploy --name my-project
-```
-
-### With [surge](https://surge.sh/)
-
-Install `surge` if you haven't already:
-
-```bash
-npm install -g surge
-```
-
-Then, from within your project folder:
-
-```bash
-npm run build
-surge public my-project.surge.sh
-```

@@ -1,9 +1,9 @@
 <script>
 	import Playlist from './view/Playlist.svelte';
 	// export let name;
-	// import {setContext} from 'svelte';
-	// import key from './key';
-	// setContext('YOUTUBE_API_KEY', key.YOUTUBE_API_KEY);
+	import {setContext} from 'svelte';
+	import key from './key';
+	setContext('YOUTUBE_API_KEY', key.YOUTUBE_API_KEY);
 </script>
 
 <main class="container">
