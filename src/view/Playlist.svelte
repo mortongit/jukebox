@@ -1,7 +1,10 @@
 <div bind:this="{rootElm}" class="columns">
   <div class="column">
     <nav class="panel is-info">
-      <div class="panel-heading"><span class="tag is-primary is-light is-medium">{new Date(songList.reduce((pv,cv)=>pv+cv.duration,0)*1000).toUTCString().split(' ')[4]}</span></div>
+      <div class="panel-heading">
+        <span class="tag is-primary is-light is-medium">{songList.length}</span>
+        <span class="tag is-primary is-light is-medium">{new Date(songList.reduce((pv,cv)=>pv+cv.duration,0)*1000).toUTCString().split(' ')[4]}</span>
+      </div>
       <div class="sortable">
       {#each songList as item,idx (item) }
         <!-- svelte-ignore a11y-missing-attribute -->
@@ -111,6 +114,7 @@
   // 3.동영상 재생시작 및 종료시간 지정 기능 구현
   // 4.가끔씩 드래그앤드롭 재생순서 조정이 작동하지 않는 문제 해결
   // 5.컴포넌트 분리
+  // 6.유튜브 재생목록 임포트시 비동기 조회로 인해 순서가 유지되지 않음
 
   import { getContext } from 'svelte'
   const youtubeApiKey = getContext('YOUTUBE_API_KEY');
