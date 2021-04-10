@@ -110,6 +110,7 @@
   // 2.재생목록은 50곡까지 지원 (재생목록 추가시 검색결과로 표시하고 페이지 처리를 구현하여 해결 가능)
   // 3.동영상 재생시작 및 종료시간 지정 기능 구현
   // 4.가끔씩 드래그앤드롭 재생순서 조정이 작동하지 않는 문제 해결
+  // 5.컴포넌트 분리
 
   import { getContext } from 'svelte'
   const youtubeApiKey = getContext('YOUTUBE_API_KEY');
