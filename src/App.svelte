@@ -8,7 +8,7 @@
 
 <main class="container">
 	<h1 class="block">Mini Jukebox</h1>
-	<p class="block"><a href="https://svelte.dev">Svelte</a> 공부하기 위해서 만들어 보는 앱</p>
+	<p class="block"><a href="https://svelte.dev">Svelte</a> 공부할겸 만들어 보는 앱</p>
 	<div class="columns">
 		<div class="column">
 			<Playlist></Playlist>

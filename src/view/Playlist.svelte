@@ -1,9 +1,9 @@
 <div bind:this="{rootElm}" class="columns">
   <div class="column">
     <nav class="panel is-info">
-      <div class="panel-heading">재생목록 ( {new Date(songList.reduce((pv,cv)=>pv+cv.duration,0)*1000).toUTCString().split(' ')[4]} ) </div>
+      <div class="panel-heading"><span class="tag is-primary is-light is-medium">{new Date(songList.reduce((pv,cv)=>pv+cv.duration,0)*1000).toUTCString().split(' ')[4]}</span></div>
       <div class="sortable">
-      {#each songList as item,idx (item.id) }
+      {#each songList as item,idx (item) }
         <!-- svelte-ignore a11y-missing-attribute -->
         <div class="panel-block {songIdx===idx?'is-active':''}" >
           <div class="columns is-centered is-vcentered">
@@ -12,23 +12,20 @@
                 <i on:click="{ev=>clickSong(idx)}" class="fas fa-compact-disc {songIdx===idx?'fa-spin':''}" aria-hidden="true"></i>
               </span>
             </div>
-            <!-- <i class="fas fa-record-vinyl"></i> -->
             <div class="column handle">
               <p class="title is-6">{item.title}</p>
-              <p class="subtitle is-6">{new Date(item.duration*1000).toUTCString().split(' ')[4]} ( {item.start} ~ {item.end} ) </p>
+              <p class="subtitle is-6">
+                {new Date(item.duration*1000).toUTCString().split(' ')[4]} 
+                <!-- ( {item.start} ~ {item.end} )  -->
+              </p>
             </div>
             <div class="column is-narrow-tablet">
               <button on:click="{ev=>delSong(idx)}" class="delete is-large"></button>
-              <!-- <button on:click="{ev=>delSong(idx)}" class="button is-pulled-right"><i class="fas fa-times" aria-hidden="true"></i></button> -->
             </div>
           </div>
         </div>
       {/each}
       </div>
-      <!-- <div class="panel-block">
-        <input type="text" bind:value="{songUrl}" placeholder="동영상 또는 재생목록의 주소를 입력하세요." class="input" on:keydown="{e=>console.log(songUrl.length,e.key)}" />
-        <button type="button" on:click="{addSong}" class="button is-info"><i class="fas fa-plus bi-plus"></i></button>
-      </div> -->
       <div class="panel-block">
         <input type="range" min="{seekMin}" max="{seekMax}" bind:value="{seekVal}" on:change={seekChange} class="form-range" >
       </div>
@@ -41,25 +38,24 @@
       <input id="switchRoundedSuccess" type="checkbox" name="switchRoundedSuccess" class="switch is-rounded is-success" bind:checked="{debug}" on:change="{changeDebug}">
       <label for="switchRoundedSuccess">DEBUG</label>
     </div>
-    <!-- <button on:click="{stopVideo}" class="button"><i class="fas fa-stop"></i></button> -->
+
     <!-- <iframe> (과 유튜브 플레이어)로 대체할 <div> 엘리먼트 -->
     <!-- <iframe id="player" bind:this="{playerElm}" width="100" height="100" src="https://www.youtube.com/embed/DN20QSP3CqI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> -->
-    
     <div id="player"></div>
   </div>
   <div  class="column">
     <nav class="panel is-info">
       <div class="panel-heading">검색</div>
       <div class="panel-block">
-        <div class="control">
-          <div class="field is-grouped">
+        <!-- <div class="control">
+          <div class="field is-grouped"> -->
             <div class="control is-expanded has-icons-left">
-              <input type="search" bind:value="{searchWord}" on:keydown="{e=>e.key==='Enter'&&searchSong()}" placeholder="검색어 또는 주소" class="input" />
+              <input type="search" bind:value="{searchWord}" on:keydown="{e=>{if(e.key==='Enter')searchSong()}}" placeholder="검색어 또는 주소" class="input" />
               <span class="icon is-left">
                 <i class="fas fa-search" aria-hidden="true"></i>
               </span>
             </div>
-            <div class="control">
+            <!-- <div class="control">
               <button type="button" on:click="{searchSong}" class="button is-info">
                 <span class="icon is-small">
                   <i class="fas fa-search" aria-hidden="true"></i>
@@ -67,24 +63,8 @@
               </button>
             </div>
           </div>
-        </div>
+        </div> -->
       </div>
-      <!-- <div class="panel-block">
-        <div class="field has-addons">
-          <div class="control has-icons-left has-icons-right">
-            <input type="text" class="input" placeholder="URL OR 검색어" bind:value="{searchWord}" on:keydown="{searchSong}">
-            <span class="icon is-left">
-              <i class="fas fa-search" aria-hidden="true"></i>
-            </span>
-            <span class="icon is-right">
-              <i class="fas fa-times" aria-hidden="true"></i>
-            </span>
-          </div>
-          <div class="control">
-              <button on:click="{searchSong}" class="button is-info">검색</button>
-          </div>
-        </div>
-      </div> -->
       {#each searchList as item,idx (item.id) }
         <!-- svelte-ignore a11y-missing-attribute -->
         <div class="panel-block" >
@@ -98,24 +78,14 @@
               <p class="title is-6">{item.title}</p>
               <p class="subtitle is-6"><span class="tag {item.type==='video'?'is-success':'is-warning'}">{item.type}</span></p>
             </div>
-            <div class="column is-narrow-tablet">
-              <figure class="image is-64x64">
+            <div class="column is-narrow-tablet has-text-centered">
+              <figure class="image is-64x64 is-inline-block">
                 <img src="{item.img}">
               </figure>
             </div>
           </div>
         </div>
       {/each}
-      <!-- <div class="panel-block">
-        <input type="url" bind:value="{songUrl}" placeholder="VIDEO URL" class="input" />
-        <button type="button" on:click="{addSong}" class="button is-info"><i class="fas fa-plus bi-plus"></i></button>
-      </div>
-      <div class="panel-block">
-        <button type="button" on:click="{startVideo}" class="button is-info is-fullwidth"><i class="fas {songPlaying?'fa-pause':'fa-play'} {songPlaying?'bi-pause':'bi-play'}"></i></button>
-      </div>
-      <div class="panel-block">
-        <input type="range" min="{seekMin}" max="{seekMax}" bind:value="{seekVal}" on:change={seekChange} class="form-range" >
-      </div> -->
     </nav>
   </div>
 </div>
@@ -133,10 +103,13 @@
   // https://youtu.be/LSVgeVWxXV8
   // https://youtu.be/eWuRCEIr5jQ
   // https://www.youtube.com/watch?v=DN20QSP3CqI
+  // https://www.youtube.com/playlist?list=PLgt61A4grz6hUuQ7vvLXCYFk_gyvXqx23
 
   // TODO
   // 1.검색 결과 페이지 처리 (현재는 검색결과를 20개까지만 지원)
   // 2.재생목록은 50곡까지 지원 (재생목록 추가시 검색결과로 표시하고 페이지 처리를 구현하여 해결 가능)
+  // 3.동영상 재생시작 및 종료시간 지정 기능 구현
+  // 4.가끔씩 드래그앤드롭 재생순서 조정이 작동하지 않는 문제 해결
 
   import { getContext } from 'svelte'
   const youtubeApiKey = getContext('YOUTUBE_API_KEY');
@@ -155,12 +128,12 @@ import { prevent_default } from 'svelte/internal';
     handle: '.handle', //드래그핸들러엘리먼트선택자
     // draggable: "드래그가능한엘리먼트선택자",
     // filter: "드래그불가능한엘리먼트선택자", 
-    // onEnd: function (ev) { console.log('onEnd.foo:', evt.oldIndex,evt.newIndex); },
+    // onEnd: function (ev) { console.log('onEnd:', evt.oldIndex,evt.newIndex); },
     onUpdate: function (ev){ //목록내의 순서가 변경된 경우
       const temp = songList.splice(ev.oldIndex, 1)[0]; //이동할요소를배열에서빼내서
       songList.splice(ev.newIndex, 0, temp); //배열의새로운위치에추가
       if (songIdx===ev.oldIndex) songIdx = ev.newIndex; 
-      else if (ev.oldIndex < songIdx && songIdx < ev.newIndex) songIdx--;
+      else if (ev.oldIndex < songIdx && songIdx <= ev.newIndex) songIdx--;
       else if (ev.newIndex <= songIdx && songIdx < ev.oldIndex) songIdx++;
       songList = songList;
       console.log('onUpdate:', ev.oldIndex,ev.newIndex,songIdx); 
@@ -429,13 +402,7 @@ import { prevent_default } from 'svelte/internal';
 	let seekVal = 0;
 	function seekChange(){
     player.seekTo(seekVal, true);
-		// alert(val);
 	}
-
-  // function stopVideo() {
-  //   player.stopVideo();
-  //   // player.clearVideo();
-  // }
 
 </script>
 
@@ -459,5 +426,10 @@ import { prevent_default } from 'svelte/internal';
   /* 패널 아이콘의 디폴트 우측 마진을 제거 */
   .panel-icon {
     margin-right: 0px;
+  }
+
+  .sortable {
+    max-height:100%;
+    overflow-y:auto;
   }
 </style>

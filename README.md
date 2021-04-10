@@ -1,6 +1,6 @@
 # MINI JUKEBOX APP
 
-간단한 쥬크박스 앱을 위한 프로젝트
+간단한 유튜브 음원 쥬크박스 앱 프로젝트
 
 ## Features
 - 유튜브 동영상 및 재생목록 주소를 이용한 음원 추가
@@ -10,8 +10,9 @@
 - 음원 재생 및 일시 정지
 - 음원 목록 순차 재생, 목록 반복 재생, 선택 음원 재생
 - 탐색바(seekbar)를 이용한 재생 위치 변경
+- 재생목록 전체 재생시간 출력
 
-## Requirements
+## Tools and Libraries
 - nodejs 14.16.0
 - rollup 2.3.4
 - svelte 3.0.0
