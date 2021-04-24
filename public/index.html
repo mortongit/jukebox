@@ -4,7 +4,7 @@
 	<meta charset='utf-8'>
 	<meta name='viewport' content='width=device-width,initial-scale=1'>
 
-	<title>Svelte app</title>
+	<title>MINI JUKEBOX</title>
 
 	<link rel='icon' type='image/png' href='/favicon.png'>
 	<link rel='stylesheet' href='/global.css'>
@@ -17,11 +17,21 @@
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma-switch@2.0.0/dist/css/bulma-switch.min.css">
 	<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css"> -->
 	
-	<!-- <script src="http://www.youtube.com/player_api"></script> -->
+	<!-- 유튜브 IFRAME PLAYER API -->
+	<!-- <script src="https://www.youtube.com/iframe_api"></script> -->
 	<!-- 유튜브 시간 정보 파싱을 위해서 -->
 	<script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
 	<!-- 드래그앤드롭으로 곡 순서 변경 https://github.com/SortableJS/Sortable/ -->
 	<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.13.0/Sortable.min.js"></script>
+
+	<!-- 파이어베이스 사용시 항상 맨 위에 포함시켜야 하는 core Firebase JS SDK -->
+	<script src="/__/firebase/8.4.1/firebase-app.js"></script>
+	<!-- 사용할 Firebase 제품의 SDK들을 추가 -->
+	<script src="/__/firebase/8.4.1/firebase-auth.js"></script>
+	<script src="/__/firebase/8.4.1/firebase-firestore.js"></script>
+	<!-- 파이어베이스 초기화 -->
+	<script src="/__/firebase/init.js"></script>
+
 </head>
 
 <body>

@@ -23,6 +23,7 @@
 - youtube data_api
 - moment@2.29.1
 - sortablejs@1.13.0
+- firebase/8.4.1
 
 ## Get started
 

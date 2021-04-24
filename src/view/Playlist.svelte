@@ -4,6 +4,12 @@
       <div class="panel-heading">
         <span class="tag is-primary is-light is-medium">{songList.length}</span>
         <span class="tag is-primary is-light is-medium">{new Date(songList.reduce((pv,cv)=>pv+cv.duration,0)*1000).toUTCString().split(' ')[4]}</span>
+        <button on:click="{savePlaylist}" disabled="{!needSave}" class="button is-small" >
+          <span class="icon is-small">
+            <i class="fas fa-save"></i>
+          </span>
+          <!-- <span>Save</span> -->
+        </button>
       </div>
       <div class="sortable">
       {#each songList as item,idx (item) }
@@ -48,12 +54,12 @@
   </div>
   <div  class="column">
     <nav class="panel is-info">
-      <div class="panel-heading">검색</div>
+      <div class="panel-heading"><span class="tag is-primary is-light is-medium">SEARCH</span></div>
       <div class="panel-block">
         <!-- <div class="control">
           <div class="field is-grouped"> -->
             <div class="control is-expanded has-icons-left">
-              <input type="search" bind:value="{searchWord}" on:keydown="{e=>{if(e.key==='Enter')searchSong()}}" placeholder="검색어 또는 주소" class="input" />
+              <input type="search" bind:value="{searchWord}" on:keydown="{e=>{if(e.key==='Enter')searchSong()}}" placeholder="검색어 또는 동영상 주소" class="input" />
               <span class="icon is-left">
                 <i class="fas fa-search" aria-hidden="true"></i>
               </span>
@@ -100,6 +106,39 @@
     if (debug) player.setSize(320, 180);
     else player.setSize(0, 0);
   }
+
+  //TODO
+  //1.플레이리스트 제목 수정 기능
+  //2.플레이리스트 추가시 순서 유지
+
+  let needSave = false;
+  export let pid; // :pid 경로 파라미터 받기
+  var db = firebase.firestore();
+  function savePlaylist(params) {
+    console.log('playlistId:',pid);
+    db.collection("playlists").doc(pid).update({
+      // id: docRef.id, //플레이리스트 아이디
+      // title: ptitle, //플레이리스트 이름
+      tracks: songList  //플레이리스트 동영상 목록
+      // uid: firebase.auth().currentUser.uid, //플레이리스트 소유자
+      // timestamp: firebase.firestore.FieldValue.serverTimestamp() //서버 시간 저장
+    })
+    .then(() => {
+      console.log("Document successfully updated!");
+      needSave = false;
+    })
+    .catch((error) => {
+        console.error("Error updating document: ", error);
+    });
+  }
+
+  db.collection("playlists").doc(pid).get().then((doc) => {
+    console.log("Document data:", doc.data());
+    songList = doc.data().tracks;
+  }).catch((error) => {
+    console.log("Error getting document:", error);
+  });
+
   // https://youtu.be/DN20QSP3CqI
   // https://youtu.be/Sl5I4I0ZDrY
   // https://youtu.be/lpwG8f9nt4s
@@ -120,7 +159,6 @@
   const youtubeApiKey = getContext('YOUTUBE_API_KEY');
 
   import { onMount, afterUpdate } from 'svelte';
-import { prevent_default } from 'svelte/internal';
   let rootElm; //현재 컴포넌트의 루트 엘리먼트
   onMount(() => {
     console.log('the component has mounted');
@@ -150,7 +188,7 @@ import { prevent_default } from 'svelte/internal';
   let songPlaying = false; //현재 재생 중인지 여부
   let songBuffering = false; //현재 버퍼링 중인지 여부
   let songTimer; //1초마다 재생 진행을 출력하기 위한 타이머아이디
-  let songUrl = 'https://youtu.be/DN20QSP3CqI'; //사용자에게입력받은동영상주소
+  let songUrl = ''; //사용자에게입력받은동영상주소
   
   let searchWord;
   let searchList = []; //검색결과 리소스({ type: , id: , title: , img:  })들을 저장
@@ -160,7 +198,10 @@ import { prevent_default } from 'svelte/internal';
     if ((!searchWord)||searchWord.trim().length===0) return; //검색어가 존재하는 경우에만 검색 작업 수행
 
     //검색어가 유튜브 URL 형태라면 즉시 추가하고, 그렇지 않으면 검색 작업 수행
-    if (addUrl(searchWord)) return; //검색어가 주소라면 처리하고 종료
+    if (addUrl(searchWord)) { //검색어가 주소라면 해당 주소의 동영상 또는 재생목록을 추가
+      searchList = []; //검색결과 초기화
+      return;  //검색 처리 종료
+    } 
     
     //유튜브 데이터 검색을 위한 파라미터 설정 
     const params = new URLSearchParams();
@@ -250,7 +291,8 @@ import { prevent_default } from 'svelte/internal';
       song.start = 0;
       song.end = song.duration;
       songList = songList.concat( song );
-      songUrl = '';
+      // songUrl = '';
+      needSave = true;
     }).catch(err => {
       console.error(err);
       alert('정보를 조회할 수 없습니다 : ' + songUrl);
@@ -280,7 +322,7 @@ import { prevent_default } from 'svelte/internal';
 
   //API 코드 다운로드가 완료되면 <iframe> (유튜브 플레이어) 생성
   let player;
-  window.onYouTubeIframeAPIReady = function onYouTubeIframeAPIReady() { // 전역함수로 등록 필요
+  function createPlayer() { // 전역함수로 등록 필요
     console.log('onYouTubeIframeAPIReady!');
     player = new YT.Player('player', {
       width: '320', //동영상 플레이어의 너비 (기본값은 640)
@@ -302,7 +344,13 @@ import { prevent_default } from 'svelte/internal';
         'onStateChange': onPlayerStateChange
       }
     });
+    console.log('player', player);
   }
+  // if (YT&&YT.Player) {
+  //   createPlayer();
+  // }else {
+    window.onYouTubeIframeAPIReady = createPlayer;
+  // }
   
   // 비디오 플레이어가 준비되면 실행할 함수
   function startVideo(event) {
@@ -344,6 +392,7 @@ import { prevent_default } from 'svelte/internal';
     if (!confirm('정말 삭제할까요?')) return; //삭제 의지 재확인
     
     songList = songList.filter((v,i,a)=>i!==idx); //곡 삭제
+    needSave = true;
     
     if (idx < songIdx) songIdx--; //현재 재생곡보다 앞쪽의 곡을 삭제한 경우 현재 재생곡 번호를 1 감소
     else if (idx === songIdx) { //현재 재생곡을 삭제한 경우
