@@ -5,11 +5,13 @@
             <span class="tag is-primary is-light is-medium">PRIVATE</span>
         </div>
         {#each docList as item,idx (item.id) }
-        <div class="panel-block" >
-          <div class="columns is-centered is-vcentered">
+        <div class="panel-block is-vcentered" >
+          <button on:click="{ev=>delPlaylist(item.id)}" class="delete is-large mr-3"></button>
+          <Link to="play/{item.id}" class="title is-6">{item.data().title}</Link>
+          <!-- <div class="columns is-centered is-vcentered">
             <div class="column is-narrow-tablet">
               <span class="panel-icon fa-2x">
-                <i class="fas fa-list" aria-hidden="true"></i>
+                <i class="fas fa-book" aria-hidden="true"></i>
               </span>
             </div>
             <div class="column">
@@ -18,7 +20,7 @@
             <div class="column is-narrow-tablet">
               <button on:click="{ev=>delPlaylist(item.id)}" class="delete is-large"></button>
             </div>
-          </div>
+          </div> -->
         </div>
         {/each}
         <div class="panel-block">

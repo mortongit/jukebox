@@ -2,8 +2,9 @@
   <div class="column">
     <nav class="panel is-info">
       <div class="panel-heading">
+        <input type="text" bind:value="{songListTitle}" on:change="{()=>needSave=true}" class="input mb-3" >
         <span class="tag is-primary is-light is-medium">{songList.length}</span>
-        <span class="tag is-primary is-light is-medium">{new Date(songList.reduce((pv,cv)=>pv+cv.duration,0)*1000).toUTCString().split(' ')[4]}</span>
+        <span class="tag is-primary is-light is-medium">{new Date(totalDuration*1000).toUTCString().split(' ')[4]}</span>
         <button on:click="{savePlaylist}" disabled="{!needSave}" class="button is-small" >
           <span class="icon is-small">
             <i class="fas fa-save"></i>
@@ -18,14 +19,18 @@
           <div class="columns is-centered is-vcentered">
             <div class="column is-narrow-tablet">
               <span class="panel-icon fa-2x">
-                <i on:click="{ev=>clickSong(idx)}" class="fas fa-compact-disc {songIdx===idx?'fa-spin':''}" aria-hidden="true"></i>
+                <i on:click="{ev=>clickSong(idx)}" class="fas fa-compact-disc {songIdx===idx&&songPlaying?'fa-spin':''}" aria-hidden="true"></i>
               </span>
             </div>
-            <div class="column handle">
-              <p class="title is-6">{item.title}</p>
-              <p class="subtitle is-6">
+            <div class="column">
+              <p class="title is-6 handle">{@html item.title}</p>
+              <!-- <p class="subtitle is-6">
                 {new Date(item.duration*1000).toUTCString().split(' ')[4]} 
-                <!-- ( {item.start} ~ {item.end} )  -->
+                ( {item.start} ~ {item.end} ) 
+              </p> -->
+              <p>
+                <NoUiSlider start="{[item.start, item.end]}" range="{ {min: 0, max: item.duration} }" step="{1}" on:update="{e => {item.start=e.detail.values[0]; item.end=e.detail.values[1]; needSave=true;}}" />
+                  {new Date(item.start*1000).toUTCString().split(' ')[4]} - {new Date(item.end*1000).toUTCString().split(' ')[4]}
               </p>
             </div>
             <div class="column is-narrow-tablet">
@@ -36,7 +41,8 @@
       {/each}
       </div>
       <div class="panel-block">
-        <input type="range" min="{seekMin}" max="{seekMax}" bind:value="{seekVal}" on:change={seekChange} class="form-range" >
+        <p class="column is-fullwidth"><input type="range" min="{seekMin}" max="{seekMax}" bind:value="{seekVal}" on:change={seekChange} class="form-range" ></p>
+        <p class="is-centered is-vcentered">{new Date(seekVal*1000).toUTCString().split(' ')[4]}</p>
       </div>
       <div class="panel-block">
         <button type="button" on:click="{startVideo}" class="button is-info is-fullwidth {songBuffering?'is-loading':''}"><i class="fas {songPlaying?'fa-pause':'fa-play'} {songPlaying?'bi-pause':'bi-play'}"></i></button>
@@ -84,7 +90,7 @@
               </span>
             </div>
             <div class="column">
-              <p class="title is-6">{item.title}</p>
+              <p class="title is-6">{@html item.title}</p>
               <p class="subtitle is-6"><span class="tag {item.type==='video'?'is-success':'is-warning'}">{item.type}</span></p>
             </div>
             <div class="column is-narrow-tablet has-text-centered">
@@ -100,16 +106,14 @@
 </div>
 
 <script>
+  import NoUiSlider from '@woden/svelte-nouislider'
+
   // 동영상 보이기 감추기
   let debug = true;
   function changeDebug(ev) {
     if (debug) player.setSize(320, 180);
     else player.setSize(0, 0);
   }
-
-  //TODO
-  //1.플레이리스트 제목 수정 기능
-  //2.플레이리스트 추가시 순서 유지
 
   let needSave = false;
   export let pid; // :pid 경로 파라미터 받기
@@ -118,7 +122,7 @@
     console.log('playlistId:',pid);
     db.collection("playlists").doc(pid).update({
       // id: docRef.id, //플레이리스트 아이디
-      // title: ptitle, //플레이리스트 이름
+      title: songListTitle, //플레이리스트 이름
       tracks: songList  //플레이리스트 동영상 목록
       // uid: firebase.auth().currentUser.uid, //플레이리스트 소유자
       // timestamp: firebase.firestore.FieldValue.serverTimestamp() //서버 시간 저장
@@ -135,25 +139,31 @@
   db.collection("playlists").doc(pid).get().then((doc) => {
     console.log("Document data:", doc.data());
     songList = doc.data().tracks;
+    songListTitle = doc.data().title;
   }).catch((error) => {
     console.log("Error getting document:", error);
   });
 
+  $: totalDuration = songList.reduce((pv,cv)=>pv+(cv.end-cv.start),0);
+  $: if (needSave) totalDuration = songList.reduce((pv,cv)=>pv+(cv.end-cv.start),0);
+
   // https://youtu.be/DN20QSP3CqI
   // https://youtu.be/Sl5I4I0ZDrY
-  // https://youtu.be/lpwG8f9nt4s
-  // https://youtu.be/LSVgeVWxXV8
-  // https://youtu.be/eWuRCEIr5jQ
   // https://www.youtube.com/watch?v=DN20QSP3CqI
   // https://www.youtube.com/playlist?list=PLgt61A4grz6hUuQ7vvLXCYFk_gyvXqx23
 
   // TODO
   // 1.검색 결과 페이지 처리 (현재는 검색결과를 20개까지만 지원)
   // 2.재생목록은 50곡까지 지원 (재생목록 추가시 검색결과로 표시하고 페이지 처리를 구현하여 해결 가능)
-  // 3.동영상 재생시작 및 종료시간 지정 기능 구현
-  // 4.가끔씩 드래그앤드롭 재생순서 조정이 작동하지 않는 문제 해결
+  // 4.드래그앤드롭시 잠시동안 먹통이 되는 현상 간헐적 발생
   // 5.컴포넌트 분리
-  // 6.유튜브 재생목록 임포트시 비동기 조회로 인해 순서가 유지되지 않음
+  
+  //1.플레이리스트 제목 수정 기능
+  //2.플레이리스트 추가시 순서 유지
+  //3.순서변경시에도 저장버튼 활성화
+  //4.동영상 재생시작 및 종료시간 지정 기능 구현
+  
+  
 
   import { getContext } from 'svelte'
   const youtubeApiKey = getContext('YOUTUBE_API_KEY');
@@ -161,11 +171,12 @@
   import { onMount, afterUpdate } from 'svelte';
   let rootElm; //현재 컴포넌트의 루트 엘리먼트
   onMount(() => {
-    console.log('the component has mounted');
-    // IFrame Player API 코드 비동기 로드
-    let tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    rootElm.appendChild(tag);
+  //   console.log('the component has mounted');
+  //   // IFrame Player API 코드 비동기 로드
+  //   let tag = document.createElement('script');
+  //   tag.src = "https://www.youtube.com/iframe_api";
+  //   rootElm.appendChild(tag);
+    createPlayer(); //유튜브 플레이어를 생성할 DOM 엘리먼트를 찾아야 하므로 마운트 이후 실행 필요
   });
   afterUpdate(() => Sortable.create(document.querySelector('.sortable'), {
     handle: '.handle', //드래그핸들러엘리먼트선택자
@@ -179,15 +190,17 @@
       else if (ev.oldIndex < songIdx && songIdx <= ev.newIndex) songIdx--;
       else if (ev.newIndex <= songIdx && songIdx < ev.oldIndex) songIdx++;
       songList = songList;
-      console.log('onUpdate:', ev.oldIndex,ev.newIndex,songIdx); 
+      needSave = true;
+      // console.log('onUpdate:', ev.oldIndex,ev.newIndex,songIdx); 
     }
   }));
 
+  let songListTitle = ''; //재생목록 제목
   let songList = []; //재생목록
   let songIdx = -1; //현재 재생 중인 곡 목록
   let songPlaying = false; //현재 재생 중인지 여부
   let songBuffering = false; //현재 버퍼링 중인지 여부
-  let songTimer; //1초마다 재생 진행을 출력하기 위한 타이머아이디
+  let songTimer = null; //1초마다 재생 진행을 출력하기 위한 타이머아이디
   let songUrl = ''; //사용자에게입력받은동영상주소
   
   let searchWord;
@@ -287,16 +300,25 @@
     .then(data => {
       console.log(data);
       const item = data.items[0];
-      const song = { id: item.id, title: item.snippet.title, duration: moment.duration(item.contentDetails.duration).asSeconds(), img: item.snippet.thumbnails.default.url };
-      song.start = 0;
-      song.end = song.duration;
-      songList = songList.concat( song );
+      // const song = { id: item.id, title: item.snippet.title, duration: moment.duration(item.contentDetails.duration).asSeconds(), img: item.snippet.thumbnails.default.url };
+      // song.start = 0;
+      // song.end = song.duration;
+      songList.filter(v=>v.id===item.id).forEach(v=>{
+        if (!v.title) v.title = item.snippet.title; 
+        if (!v.img) v.img = item.snippet.thumbnails.default.url;
+        if (!v.start) v.start = 0;
+        if (!v.end) v.end = moment.duration(item.contentDetails.duration).asSeconds(); //곡길이정보를 초단위 값으로 변환
+        if (!v.duration) v.duration = moment.duration(item.contentDetails.duration).asSeconds(); //곡길이정보를 초단위 값으로 변환
+      });
       // songUrl = '';
       needSave = true;
     }).catch(err => {
       console.error(err);
-      alert('정보를 조회할 수 없습니다 : ' + songUrl);
-    });
+      songList.splice(songList.map(v=>v.id).lastIndexOf(rsc.id), 1); //상세 조회를 실패한 아이디의 트랙을 songList에서 삭제
+      alert('정보를 조회할 수 없습니다 : ' + rsc.id);
+    }).finally(()=>songList = songList); //상세 조회 성공 또는 실패시 변경된 songList를 화면에 반영
+    
+    songList.push({ id: rsc.id });//일단 songList에 id만 추가하고 상세 조회 후 업데이트
   }
 
   function addUrl(url) {
@@ -347,10 +369,21 @@
     console.log('player', player);
   }
   // if (YT&&YT.Player) {
-  //   createPlayer();
+    // createPlayer();
   // }else {
-    window.onYouTubeIframeAPIReady = createPlayer;
+    // window.onYouTubeIframeAPIReady = createPlayer;
   // }
+  function loadCurrentSong() {
+    console.log('loadCurrentSong',songList[songIdx].id, songList[songIdx].start, songList[songIdx].end);
+    player.loadVideoById({
+      videoId: songList[songIdx].id,
+      startSeconds: songList[songIdx].start,
+      endSeconds: songList[songIdx].end,
+        // suggestedQuality:String 
+    });
+    seekVal = seekMin = songList[songIdx].start;
+    seekMax = songList[songIdx].end;
+  }
   
   // 비디오 플레이어가 준비되면 실행할 함수
   function startVideo(event) {
@@ -364,12 +397,7 @@
       }
       if (songIdx===-1) { //현재 재생목록에서 재생한 적이 없는 경우
         if (++songIdx >= songList.length) songIdx = 0; //재생 중에 종료된 경우, 다음곡 설정(없는 경우 첫곡으로 돌아가기)
-        player.loadVideoById({
-        videoId:songList[songIdx].id,
-          // startSeconds:Number,
-          // endSeconds:Number,
-          // suggestedQuality:String 
-        });
+        loadCurrentSong();
       }
       player.playVideo();  
     }
@@ -378,12 +406,7 @@
 
   function clickSong(idx) {
     songIdx = idx; 
-    player.loadVideoById({
-    videoId:songList[songIdx].id,
-      // startSeconds:Number,
-      // endSeconds:Number,
-      // suggestedQuality:String 
-    });
+    loadCurrentSong();
     player.playVideo();
     songPlaying = true;
   }
@@ -405,12 +428,7 @@
       } else { //곡이 있는 경우
         if (songIdx === songList.length) songIdx = 0; //삭제한 재생곡이 마지막 곡이었던 경우 재생곡 번호를 첫 곡으로 설정
         //변경된 재생곡을 로드하고
-        player.loadVideoById({ 
-          videoId:songList[songIdx].id,
-            // startSeconds:Number,
-            // endSeconds:Number,
-            // suggestedQuality:String 
-          });
+        loadCurrentSong();
         if (songPlaying) player.playVideo(); //재생 중이 었다면 재생 시작
       } 
     }
@@ -425,23 +443,18 @@
         break;
       case 0: //종료 === YT.PlayerState.ENDED
         if (++songIdx >= songList.length) songIdx = 0; //재생 중에 종료된 경우, 다음곡 설정(없는 경우 첫곡으로 돌아가기)
-        player.loadVideoById({
-        videoId:songList[songIdx].id,
-          // startSeconds:Number,
-          // endSeconds:Number,
-          // suggestedQuality:String 
-        });
+        loadCurrentSong();
         player.playVideo();
         break;
       case 1: //재생 중 === YT.PlayerState.PLAYING
-        seekMax = player.getDuration(); 
-        songTimer = setInterval(function() {
-            // console.log(player.getCurrentTime(), player.getDuration());
-            seekVal = player.getCurrentTime();
-        }, 1000);
+        // seekMax = player.getDuration(); 
+        if (!songTimer) songTimer = setInterval(()=>seekVal = player.getCurrentTime(), 1000);
         break;
       case 2: //일시중지 === YT.PlayerState.PAUSED
-        clearInterval(songTimer);
+        if (songTimer) {
+          clearInterval(songTimer);
+          songTimer = null;
+        }
         break;
       case 3: //버퍼링 === YT.PlayerState.BUFFERING
         songBuffering = true;
