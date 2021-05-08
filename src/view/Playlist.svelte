@@ -2,7 +2,7 @@
   <div class="column">
     <nav class="panel is-info">
       <div class="panel-heading">
-        <input type="text" bind:value="{songListTitle}" on:change="{()=>needSave=true}" class="input mb-3" >
+        <input type="text" bind:value="{songListTitle}" on:input="{()=>needSave=true}" class="input mb-3" >
         <span class="tag is-primary is-light is-medium">{songList.length}</span>
         <span class="tag is-primary is-light is-medium">{new Date(totalDuration*1000).toUTCString().split(' ')[4]}</span>
         <button on:click="{savePlaylist}" disabled="{!needSave}" class="button is-small" >
@@ -28,10 +28,12 @@
                 {new Date(item.duration*1000).toUTCString().split(' ')[4]} 
                 ( {item.start} ~ {item.end} ) 
               </p> -->
+              {#if item.title}
               <p>
-                <NoUiSlider start="{[item.start, item.end]}" range="{ {min: 0, max: item.duration} }" step="{1}" on:update="{e => {item.start=e.detail.values[0]; item.end=e.detail.values[1]; needSave=true;}}" />
+                <NoUiSlider start="{[item.start, item.end]}" range="{ {min: 0, max: item.duration} }" step="{1}" connect="{true}" on:update="{e => {item.start=e.detail.values[0]; item.end=e.detail.values[1]; needSave=true;}}" />
                   {new Date(item.start*1000).toUTCString().split(' ')[4]} - {new Date(item.end*1000).toUTCString().split(' ')[4]}
               </p>
+              {/if}
             </div>
             <div class="column is-narrow-tablet">
               <button on:click="{ev=>delSong(idx)}" class="delete is-large"></button>
@@ -109,7 +111,7 @@
   import NoUiSlider from '@woden/svelte-nouislider'
 
   // 동영상 보이기 감추기
-  let debug = true;
+  let debug = false;
   function changeDebug(ev) {
     if (debug) player.setSize(320, 180);
     else player.setSize(0, 0);
@@ -119,7 +121,7 @@
   export let pid; // :pid 경로 파라미터 받기
   var db = firebase.firestore();
   function savePlaylist(params) {
-    console.log('playlistId:',pid);
+    // console.log('playlistId:',pid);
     db.collection("playlists").doc(pid).update({
       // id: docRef.id, //플레이리스트 아이디
       title: songListTitle, //플레이리스트 이름
@@ -128,7 +130,7 @@
       // timestamp: firebase.firestore.FieldValue.serverTimestamp() //서버 시간 저장
     })
     .then(() => {
-      console.log("Document successfully updated!");
+      // console.log("Document successfully updated!");
       needSave = false;
     })
     .catch((error) => {
@@ -137,15 +139,15 @@
   }
 
   db.collection("playlists").doc(pid).get().then((doc) => {
-    console.log("Document data:", doc.data());
+    // console.log("Document data:", doc.data());
     songList = doc.data().tracks;
     songListTitle = doc.data().title;
   }).catch((error) => {
     console.log("Error getting document:", error);
   });
 
-  $: totalDuration = songList.reduce((pv,cv)=>pv+(cv.end-cv.start),0);
-  $: if (needSave) totalDuration = songList.reduce((pv,cv)=>pv+(cv.end-cv.start),0);
+  $: totalDuration = songList.reduce((pv,cv)=>pv+(cv.end-cv.start),0); //곡 재생목록 변경시 전체 재생 시간 다시 계산
+  $: if (needSave) totalDuration = songList.reduce((pv,cv)=>pv+(cv.end-cv.start),0); //곡 재생범위 변경시 전체 재생 시간 다시 계산
 
   // https://youtu.be/DN20QSP3CqI
   // https://youtu.be/Sl5I4I0ZDrY
@@ -162,8 +164,6 @@
   //2.플레이리스트 추가시 순서 유지
   //3.순서변경시에도 저장버튼 활성화
   //4.동영상 재생시작 및 종료시간 지정 기능 구현
-  
-  
 
   import { getContext } from 'svelte'
   const youtubeApiKey = getContext('YOUTUBE_API_KEY');
@@ -233,7 +233,7 @@
     })
     .then(resp => resp.json()) //응답 내용을 JSON으로 파싱하는 resp.json() 역시 비동기 함수이므로 then() 으로 결과를 받아야 한다
     .then(data => {
-      console.log(data);
+      // console.log(data);
       // { items : [  {  id: { kind: "youtube#video", videoId: "P2QOxJzvBZQ" }, snippet: { title: "", thumbnails: {} }  },  {  id: { kind: "youtube#playlist", playlistId: "PLzzbccz8B9wTWg5GE2aSZCX639LNIkZMS" }, snippet: { title: "", thumbnails: {} } }, ... ] }
       searchList = data.items.map(item=>{
         const kind = item.id.kind.split('#')[1]; //kind 정보에서 # 뒷부분 문자열 값을 타입으로 사용 ('video' 또는 'playlist')
@@ -270,7 +270,7 @@
       // credentials: 'same-origin', // include, *same-origin, omit
     }).then(resp => resp.json()) //응답 내용을 JSON으로 파싱하는 resp.json() 역시 비동기 함수이므로 then() 으로 결과를 받아야 한다
     .then(data => {
-      console.log(data);
+      // console.log(data);
       //재생목록에 포함된 리소스들 중 동영상 리소스에 대해서
       // const itemList = 
       data.items.filter(item=>item.snippet.resourceId.kind==='youtube#video')
@@ -285,6 +285,8 @@
   }
 
   function addVideoToSongList(rsc) {  //video 리소스를 SongList에 추가
+    songList.push({ id: rsc.id });//일단 songList에 id만 추가하고 상세 조회 후 업데이트
+
     //동영상 상세 정보 조회
     const params = new URLSearchParams();
     params.set('key', youtubeApiKey );
@@ -298,17 +300,17 @@
       // credentials: 'same-origin', // include, *same-origin, omit
     }).then(resp => resp.json()) //응답 내용을 JSON으로 파싱하는 resp.json() 역시 비동기 함수이므로 then() 으로 결과를 받아야 한다
     .then(data => {
-      console.log(data);
+      // console.log(data);
       const item = data.items[0];
       // const song = { id: item.id, title: item.snippet.title, duration: moment.duration(item.contentDetails.duration).asSeconds(), img: item.snippet.thumbnails.default.url };
       // song.start = 0;
       // song.end = song.duration;
-      songList.filter(v=>v.id===item.id).forEach(v=>{
-        if (!v.title) v.title = item.snippet.title; 
-        if (!v.img) v.img = item.snippet.thumbnails.default.url;
-        if (!v.start) v.start = 0;
-        if (!v.end) v.end = moment.duration(item.contentDetails.duration).asSeconds(); //곡길이정보를 초단위 값으로 변환
-        if (!v.duration) v.duration = moment.duration(item.contentDetails.duration).asSeconds(); //곡길이정보를 초단위 값으로 변환
+      songList.filter(v=>(!v.title)&&v.id===item.id).forEach(v=>{
+         v.title = item.snippet.title; 
+         v.img = item.snippet.thumbnails.default.url;
+         v.start = 0;
+         v.end = moment.duration(item.contentDetails.duration).asSeconds(); //곡길이정보를 초단위 값으로 변환
+         v.duration = moment.duration(item.contentDetails.duration).asSeconds(); //곡길이정보를 초단위 값으로 변환
       });
       // songUrl = '';
       needSave = true;
@@ -317,8 +319,6 @@
       songList.splice(songList.map(v=>v.id).lastIndexOf(rsc.id), 1); //상세 조회를 실패한 아이디의 트랙을 songList에서 삭제
       alert('정보를 조회할 수 없습니다 : ' + rsc.id);
     }).finally(()=>songList = songList); //상세 조회 성공 또는 실패시 변경된 songList를 화면에 반영
-    
-    songList.push({ id: rsc.id });//일단 songList에 id만 추가하고 상세 조회 후 업데이트
   }
 
   function addUrl(url) {
@@ -345,7 +345,7 @@
   //API 코드 다운로드가 완료되면 <iframe> (유튜브 플레이어) 생성
   let player;
   function createPlayer() { // 전역함수로 등록 필요
-    console.log('onYouTubeIframeAPIReady!');
+    // console.log('onYouTubeIframeAPIReady!');
     player = new YT.Player('player', {
       width: '320', //동영상 플레이어의 너비 (기본값은 640)
       height: '180', //동영상 플레이어의 높이 (기본값은 360)
@@ -366,7 +366,7 @@
         'onStateChange': onPlayerStateChange
       }
     });
-    console.log('player', player);
+    // console.log('player', player);
   }
   // if (YT&&YT.Player) {
     // createPlayer();
@@ -387,7 +387,7 @@
   
   // 비디오 플레이어가 준비되면 실행할 함수
   function startVideo(event) {
-    console.log('startVideo!');
+    // console.log('startVideo!');
     if (songPlaying){ //현재 재생 중인 경우
       player.pauseVideo();
     }else{  //현재 재생 중이 아닌 경우
@@ -436,12 +436,14 @@
 
   // 비디오 플레이어의 상태가 변할 때 실행할 함수
   function onPlayerStateChange(event) {
-    console.log('onPlayerStateChange!', event.target, event.data); //플레이어객체와 플레이어상태
+    // console.log('onPlayerStateChange!', event.target, event.data, player.getVideoUrl(), player.getCurrentTime()); //플레이어객체와 플레이어상태
     songBuffering = false;
     switch (event.data) { // === player.getPlayerState()
       case -1: //시작되지 않음 (플레이어가 동영상을 처음 로드)
         break;
       case 0: //종료 === YT.PlayerState.ENDED
+        if (player.getCurrentTime()<=0) break; //재생을 마친 후 종료된 경우가 아니라면 무시
+        // if (player.getCurrentTime()<songList[songIdx].end) break; //재생을 마친 후 종료된 경우가 아니라면 무시
         if (++songIdx >= songList.length) songIdx = 0; //재생 중에 종료된 경우, 다음곡 설정(없는 경우 첫곡으로 돌아가기)
         loadCurrentSong();
         player.playVideo();
@@ -499,4 +501,5 @@
     max-height:100%;
     overflow-y:auto;
   }
+
 </style>
