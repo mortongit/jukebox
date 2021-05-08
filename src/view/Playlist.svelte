@@ -347,8 +347,8 @@
   function createPlayer() { // 전역함수로 등록 필요
     // console.log('onYouTubeIframeAPIReady!');
     player = new YT.Player('player', {
-      width: '320', //동영상 플레이어의 너비 (기본값은 640)
-      height: '180', //동영상 플레이어의 높이 (기본값은 360)
+      width: '0', //동영상 플레이어의 너비 (기본값은 640)
+      height: '0', //동영상 플레이어의 높이 (기본값은 360)
       videoId: 'M7lc1UVf-VE', //플레이어에서 로드할 동영상
       playerVars: { // 플레이어 매개변수 설정
         enablejsapi: 1, // IFrame 또는 JavaScript Player API 호출을 통해 플레이어가 제어 가능 여부
@@ -374,7 +374,7 @@
     // window.onYouTubeIframeAPIReady = createPlayer;
   // }
   function loadCurrentSong() {
-    console.log('loadCurrentSong',songList[songIdx].id, songList[songIdx].start, songList[songIdx].end);
+    // console.log('loadCurrentSong',songList[songIdx].id, songList[songIdx].start, songList[songIdx].end);
     player.loadVideoById({
       videoId: songList[songIdx].id,
       startSeconds: songList[songIdx].start,
